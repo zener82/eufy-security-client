@@ -1000,6 +1000,8 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
         message.p2pCommand.commandType === CommandType.CMD_PING ||
         message.p2pCommand.commandType === CommandType.CMD_GET_DEVICE_PING
       ) {
+        // Nothing was sent: keep draining the queue, otherwise the next message waits for a new command
+        this.sendQueuedMessage();
         return;
       } else {
         rootP2PLogger.warn(`Command aged out from send queue for station ${this.rawStation.station_sn}`, {
@@ -1016,6 +1018,8 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
           return_code: ErrorCode.ERROR_CONNECT_TIMEOUT,
           customData: message.customData,
         } as CommandResult);
+        // Nothing was sent: keep draining the queue, otherwise a backlog of aged out commands never shrinks
+        this.sendQueuedMessage();
         return;
       }
     } else {
